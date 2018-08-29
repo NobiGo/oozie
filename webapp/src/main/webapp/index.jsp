@@ -51,11 +51,14 @@
            <img src="./oozie_50x.png" height="16" width="70"/>
            <a href="./docs/index.html" target="bottom">Documentation</a>
         </div>
+        <!--导入所需要使用的类-->
         <%@ page
             import="org.apache.oozie.sla.service.SLAService"
             import="org.apache.oozie.service.InstrumentationService"
             import="org.apache.oozie.service.MetricsInstrumentationService"
         %>
+
+        <!--之间可以写服务端的代码-->
         <%
             boolean isSLAServiceEnabled = SLAService.isEnabled();
             boolean isInstrumentationServiceEnabled = InstrumentationService.isEnabled();

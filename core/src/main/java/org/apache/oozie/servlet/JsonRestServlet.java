@@ -46,7 +46,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Base class for Oozie web service API Servlets. <p> This class provides common instrumentation, error logging and
+ * Base class for Oozie web service API Servlets.
+ * <p> This class provides common instrumentation, error logging and
  * other common functionality.
  */
 public abstract class JsonRestServlet extends HttpServlet {
