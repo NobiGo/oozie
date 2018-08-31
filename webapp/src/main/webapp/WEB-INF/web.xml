@@ -42,6 +42,7 @@
     <servlet>
         <servlet-name>versions</servlet-name>
         <display-name>WS API for Workflow Instances</display-name>
+        <!--对应的Class文件包名和类名-->
         <servlet-class>org.apache.oozie.servlet.VersionServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -130,6 +131,11 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <!--
+    url-pattern 标签中的值是要在浏览器地址栏中输入的 url，可以自己命名，这个 url 访问名为 servlet-name 中值的 servlet，
+    两个 servlet-name 标签的值必须相同，因为通过 servlet 标签中的 servlet-name 标签映射到 servlet-class 标签中的值，
+    最终访问 servlet-class 标签中的 class。
+    -->
     <!-- servlet-mapping -->
     <servlet-mapping>
         <servlet-name>versions</servlet-name>

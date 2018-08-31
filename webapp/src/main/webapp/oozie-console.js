@@ -18,6 +18,7 @@
 
 // Warn about dependencies; this has to be done on .ready so that the divs will all be loaded and exist.  Otherwise, it won't find
 // the 'dependencies' element
+//当没有特定文件的文件时，生成相应的警告并且剖出异常
 $(document).ready(function() {
     if (typeof Ext == 'undefined'){
         var warning = 'Missing JavaScript dependencies.';
@@ -29,6 +30,7 @@ $(document).ready(function() {
         throw new Error(warning);
     }
 });
+
 
 Ext.override(Ext.Component, {
     saveState : function() {
