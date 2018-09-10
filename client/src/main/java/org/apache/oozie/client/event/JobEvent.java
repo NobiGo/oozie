@@ -27,7 +27,7 @@ import org.apache.oozie.AppType;
  * An abstract implementation of the Event interface, related to
  * notification events after job status changes
  */
-public abstract class JobEvent extends Event implements Serializable {
+public abstract class JobEvent extends org.apache.oozie.client.event.Event implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

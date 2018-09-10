@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,15 @@
 
 package org.apache.oozie.service;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.oozie.jms.*;
+import org.apache.oozie.util.XLog;
+
+import javax.jms.JMSException;
+import javax.jms.MessageConsumer;
+import javax.jms.Session;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,20 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.oozie.jms.ConnectionContext;
-import org.apache.oozie.jms.DefaultConnectionContext;
-import org.apache.oozie.jms.JMSConnectionInfo;
-import org.apache.oozie.jms.JMSExceptionListener;
-import org.apache.oozie.jms.MessageHandler;
-import org.apache.oozie.jms.MessageReceiver;
-import org.apache.oozie.util.XLog;
-
-import com.google.common.annotations.VisibleForTesting;
 
 /**
  * This class will <ul>
@@ -80,7 +75,6 @@ public class JMSAccessorService implements Service {
      */
     private Map<JMSConnectionInfo, ConnectionRetryInfo> retryConnectionsMap = new HashMap<JMSConnectionInfo, ConnectionRetryInfo>();
 
-    @Override
     public void init(Services services) throws ServiceException {
         LOG = XLog.getLog(getClass());
         conf = services.getConf();
@@ -101,8 +95,7 @@ public class JMSAccessorService implements Service {
         if (!isTopicInRetryList(connInfo, topic)) {
             if (isConnectionInRetryList(connInfo)) {
                 queueTopicForRetry(connInfo, topic, msgHandler);
-            }
-            else {
+            } else {
                 Map<String, MessageReceiver> topicsMap = getReceiversTopicsMap(connInfo);
                 if (!topicsMap.containsKey(topic)) {
                     synchronized (topicsMap) {
@@ -115,8 +108,7 @@ public class JMSAccessorService implements Service {
                             MessageReceiver receiver = registerForTopic(connInfo, connCtxt, topic, msgHandler);
                             if (receiver == null) {
                                 queueTopicForRetry(connInfo, topic, msgHandler);
-                            }
-                            else {
+                            } else {
                                 LOG.info("Registered a listener for topic {0} on {1}", topic, connInfo);
                                 topicsMap.put(topic, receiver);
                             }
@@ -138,8 +130,7 @@ public class JMSAccessorService implements Service {
 
         if (isTopicInRetryList(connInfo, topic)) {
             removeTopicFromRetryList(connInfo, topic);
-        }
-        else {
+        } else {
             Map<String, MessageReceiver> topicsMap = receiversMap.get(connInfo);
             if (topicsMap != null) {
                 MessageReceiver receiver = null;
@@ -152,12 +143,10 @@ public class JMSAccessorService implements Service {
                 if (receiver != null) {
                     try {
                         receiver.getSession().close();
-                    }
-                    catch (JMSException e) {
+                    } catch (JMSException e) {
                         LOG.warn("Unable to close session " + receiver.getSession(), e);
                     }
-                }
-                else {
+                } else {
                     LOG.warn("Received request to unregister from topic [{0}] on [{1}], but no matching session.",
                             topic, connInfo);
                 }
@@ -200,8 +189,7 @@ public class JMSAccessorService implements Service {
         ConnectionRetryInfo connRetryInfo = retryConnectionsMap.get(connInfo);
         if (connRetryInfo == null) {
             return false;
-        }
-        else {
+        } else {
             Map<String, MessageHandler> topicsMap = connRetryInfo.getTopicsToRetry();
             return topicsMap.containsKey(topic);
         }
@@ -242,15 +230,14 @@ public class JMSAccessorService implements Service {
     }
 
     private MessageReceiver registerForTopic(JMSConnectionInfo connInfo, ConnectionContext connCtxt, String topic,
-            MessageHandler msgHandler) {
+                                             MessageHandler msgHandler) {
         try {
             Session session = connCtxt.createSession(sessionOpts);
             MessageConsumer consumer = connCtxt.createConsumer(session, topic);
             MessageReceiver receiver = new MessageReceiver(msgHandler, session, consumer);
             consumer.setMessageListener(receiver);
             return receiver;
-        }
-        catch (JMSException e) {
+        } catch (JMSException e) {
             LOG.warn("Error while registering to listen to topic {0} from {1}", topic, connInfo, e);
             return null;
         }
@@ -265,8 +252,7 @@ public class JMSAccessorService implements Service {
                 connCtxt.setExceptionListener(new JMSExceptionListener(connInfo, connCtxt, true));
                 connectionMap.put(connInfo, connCtxt);
                 LOG.info("Connection established to JMS Server for [{0}]", connInfo);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 LOG.warn("Exception while establishing connection to JMS Server for [{0}]", connInfo, e);
                 return null;
             }
@@ -277,8 +263,7 @@ public class JMSAccessorService implements Service {
     public ConnectionContext createProducerConnectionContext(JMSConnectionInfo connInfo) {
         if (jmsProducerConnContext != null && jmsProducerConnContext.isConnectionInitialized()) {
             return jmsProducerConnContext;
-        }
-        else {
+        } else {
             synchronized (this) {
                 if (jmsProducerConnContext == null || !jmsProducerConnContext.isConnectionInitialized()) {
                     try {
@@ -287,8 +272,7 @@ public class JMSAccessorService implements Service {
                         jmsProducerConnContext.setExceptionListener(new JMSExceptionListener(connInfo,
                                 jmsProducerConnContext, false));
                         LOG.info("Connection established to JMS Server for [{0}]", connInfo);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         LOG.warn("Exception while establishing connection to JMS Server for [{0}]", connInfo, e);
                         return null;
                     }
@@ -303,8 +287,7 @@ public class JMSAccessorService implements Service {
         ConnectionContext connCtx = null;
         if (defaultClazz == DefaultConnectionContext.class) {
             connCtx = new DefaultConnectionContext();
-        }
-        else {
+        } else {
             connCtx = (ConnectionContext) ReflectionUtils.newInstance(defaultClazz, null);
         }
         return connCtx;
@@ -319,7 +302,6 @@ public class JMSAccessorService implements Service {
         return null;
     }
 
-    @Override
     public void destroy() {
         LOG.info("Destroying JMSAccessor service ");
         receiversMap.clear();
@@ -334,7 +316,6 @@ public class JMSAccessorService implements Service {
         connectionMap.clear();
     }
 
-    @Override
     public Class<? extends Service> getInterface() {
         return JMSAccessorService.class;
     }
@@ -378,8 +359,7 @@ public class JMSAccessorService implements Service {
         boolean shouldRetry = false;
         if (connCtxt == null) {
             shouldRetry = true;
-        }
-        else {
+        } else {
             Map<String, MessageHandler> retryTopicsMap = connRetryInfo.getTopicsToRetry();
             Map<String, MessageReceiver> listeningTopicsMap = getReceiversTopicsMap(connInfo);
             List<String> topicsToRemoveList = new ArrayList<String>();
@@ -394,8 +374,7 @@ public class JMSAccessorService implements Service {
                         MessageReceiver receiver = registerForTopic(connInfo, connCtxt, topic, topicEntry.getValue());
                         if (receiver == null) {
                             LOG.warn("Failed to register a listener for topic {0} on {1}", topic, connInfo);
-                        }
-                        else {
+                        } else {
                             listeningTopicsMap.put(topic, receiver);
                             topicsToRemoveList.add(topic);
                             LOG.info("Registered a listener for topic {0} on {1}", topic, connInfo);
@@ -413,8 +392,7 @@ public class JMSAccessorService implements Service {
 
         if (shouldRetry) {
             scheduleRetry(connInfo, connRetryInfo.getNextDelay());
-        }
-        else {
+        } else {
             retryConnectionsMap.remove(connInfo);
         }
         return true;
@@ -465,7 +443,6 @@ public class JMSAccessorService implements Service {
             return connInfo;
         }
 
-        @Override
         public void run() {
             retryConnection(connInfo);
         }

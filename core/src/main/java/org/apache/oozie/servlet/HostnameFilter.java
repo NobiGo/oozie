@@ -27,6 +27,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -83,6 +84,10 @@ public class HostnameFilter implements Filter {
             }
             HOSTNAME_TL.set(hostname);
             XLog.Info.get().clear();
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.addHeader("Access-Control-Allow-Origin", "*");
+            httpResponse.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            httpResponse.setHeader("Access-Control-Allow-Methods", "GET, PUT, DELETE, POST");
             chain.doFilter(request, response);
         }
         finally {

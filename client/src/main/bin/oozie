@@ -18,8 +18,10 @@
 #
 
 # resolve links - $0 may be a softlink
+# ${val} 是用来做命令替换的，然后将其结果替换出来，再重组成新的命令行。
 PRG="${0}"
-
+# PRG的值为/usr/lib/cluster001/oozie-4.3.0/bin/oozie（当前脚本的全名以及路径）
+# -h 判断文件存在，并且文件是一个软链接
 while [ -h "${PRG}" ]; do
   ls=`ls -ld "${PRG}"`
   link=`expr "$ls" : '.*-> \(.*\)$'`
@@ -30,26 +32,38 @@ while [ -h "${PRG}" ]; do
   fi
 done
 
+# 获取文件的目录
 BASEDIR=`dirname ${PRG}`
-BASEDIR=`cd ${BASEDIR}/..;pwd`
+# /usr/lib/LOCALCLUSTER/oozie-4.3.0/bin
 
+# 进入当前目录，并进入上一层目录（oozie的主目录）
+BASEDIR=`cd ${BASEDIR}/..;pwd`
+# /usr/lib/LOCALCLUSTER/oozie-4.3.0
+
+# -r 是判断文件是否可读，文件可读返回1，否则返回0
 if [ -r "${BASEDIR}/conf/oozie-client-env.sh" ]; then
+# 使用source可以调用脚本进行执行
   source "${BASEDIR}/conf/oozie-client-env.sh"
 fi
 
+# 判断是否具有OOZIE_URL变量
 if [ "${OOZIE_URL}" = "" ]; then
   export OOZIE_URL="http://$(hostname -f):11000/oozie"
 fi
 
 #Create lib directory from war if lib doesn't exist
+# -d判断文件是否为目录文件
 if [ ! -d "${BASEDIR}/lib" ]; then
   mkdir ${BASEDIR}/lib
+  # -d指定文件解压缩后，所要指定的目录
   unzip ${BASEDIR}/oozie.war WEB-INF/lib/*.jar -d ${BASEDIR}/lib > /dev/null
   mv ${BASEDIR}/lib/WEB-INF/lib/*.jar ${BASEDIR}/lib/
+  # 删除空目录
   rmdir ${BASEDIR}/lib/WEB-INF/lib
   rmdir ${BASEDIR}/lib/WEB-INF
 fi
 
+# 会加载lib和libext两个文件里的所有Jar包
 OOZIECPPATH=""
 for i in "${BASEDIR}/lib/"*.jar; do
   OOZIECPPATH="${OOZIECPPATH}:$i"
@@ -58,7 +72,7 @@ for i in "${BASEDIR}/libext/"*.jar; do
   OOZIECPPATH="${OOZIECPPATH}:$i"
 done
 
-
+# -z 字符串 当字符串的长度为0时为真
 if test -z ${JAVA_HOME}
 then
     JAVA_BIN=java
@@ -66,11 +80,20 @@ else
     JAVA_BIN=${JAVA_HOME}/bin/java
 fi
 
+# 向后兼容
 # Prime OOZIE_CLIENT_OPTS with JAVA_PROPERTIES for backwards compatibility
 OOZIE_CLIENT_OPTS="${JAVA_PROPERTIES} ${OOZIE_CLIENT_OPTS}"
 
 while [[ ${1} =~ ^\-D ]]; do
   OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} ${1}"
+  # shift将命令参数左移，每次读取${1}即可
   shift
 done
+
+# 传递给脚本或函数的所有参数${0}
+# java -cp 意思是-classPath 意思是指导到哪里去找你的.class文件
+# 这里使用打了java命令，因此必须要讲java路径添加到/etc/profile中
 ${JAVA_BIN} ${OOZIE_CLIENT_OPTS} -cp ${OOZIECPPATH} org.apache.oozie.cli.OozieCLI "${@}"
+
+# 根据oozie命令找到oozie的主文件夹，将加载主文件夹下的lib以及libext中所有的Jar包，
+# 最后指定特定的位置让程序去找自己所需要的org.apache.oozie.cli.OozieCLI对命令进行解析

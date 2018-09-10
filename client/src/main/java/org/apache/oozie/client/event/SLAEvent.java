@@ -25,7 +25,7 @@ import org.apache.oozie.AppType;
  * A sub-class of the Event interface, related to
  * notification events after SLA mets/misses
  */
-public abstract class SLAEvent extends Event {
+public abstract class SLAEvent extends org.apache.oozie.client.event.Event {
 
     public static enum EventStatus {
         START_MET, START_MISS, DURATION_MET, DURATION_MISS, END_MET, END_MISS

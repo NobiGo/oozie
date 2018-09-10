@@ -135,12 +135,7 @@ public class MetricsInstrumentation extends Instrumentation {
 
                     if (modifiedServerName.equals(GANGLIA)) {
                         GMetric ganglia;
-                        try {
-                            ganglia = new GMetric(metricsHost, metricsPort, GMetric.UDPAddressingMode.MULTICAST, 1);
-                        } catch (IOException e) {
-                            LOG.error("Exception, ", e);
-                            throw new RuntimeException(e);
-                        }
+                        ganglia = new GMetric(metricsHost, metricsPort, GMetric.UDPAddressingMode.MULTICAST, 1);
                         gangliaReporter = GangliaReporter.forRegistry(metricRegistry).prefixedWith(metricsPrefix)
                                 .convertRatesTo(TimeUnit.SECONDS)
                                 .convertDurationsTo(TimeUnit.MILLISECONDS)
