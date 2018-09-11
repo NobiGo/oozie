@@ -41,7 +41,7 @@ import org.apache.oozie.service.Services;
  * "oozie.web.login.auth" and use its value as the username.  More information can be found in the README.txt for the Login Server
  * Example.  Note that this implementation is NOT SECURE and should not be used in production.
  */
-public class ExampleAltAuthenticationHandler extends AltKerberosAuthenticationHandler {
+public class ExampleAltAuthenticationHandler extends org.apache.oozie.authentication.AltKerberosAuthenticationHandler {
 
     /**
      * Constant for the configuration property that indicates the redirect URL to send unauthenticated users to the Login Server.

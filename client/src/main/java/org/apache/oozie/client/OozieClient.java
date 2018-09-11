@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,29 +34,12 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.Reader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -208,6 +191,7 @@ public class OozieClient {
     private static final Set<String> COMPLETED_WF_STATUSES = new HashSet<String>();
     private static final Set<String> COMPLETED_COORD_AND_BUNDLE_STATUSES = new HashSet<String>();
     private static final Set<String> COMPLETED_COORD_ACTION_STATUSES = new HashSet<String>();
+
     static {
         COMPLETED_WF_STATUSES.add(WorkflowJob.Status.FAILED.toString());
         COMPLETED_WF_STATUSES.add(WorkflowJob.Status.KILLED.toString());
@@ -259,8 +243,7 @@ public class OozieClient {
         try {
             USER_NAME_TL.set(userName);
             return callable.call();
-        }
-        finally {
+        } finally {
             USER_NAME_TL.remove();
         }
     }
@@ -339,13 +322,11 @@ public class OozieClient {
             }
             if (supportedVersions.contains(protocolVersion)) {
                 return baseUrl + "v" + protocolVersion + "/";
-            }
-            else {
+            } else {
                 throw new OozieClientException(OozieClientException.UNSUPPORTED_VERSION, "Protocol version "
                         + protocolVersion + " is not supported");
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new OozieClientException(OozieClientException.IO_ERROR, e);
         }
     }
@@ -377,17 +358,14 @@ public class OozieClient {
                 }
                 if (supportedVersions.contains(WS_PROTOCOL_VERSION)) {
                     protocolUrl = baseUrl + "v" + WS_PROTOCOL_VERSION + "/";
-                }
-                else if (supportedVersions.contains(WS_PROTOCOL_VERSION_1)) {
+                } else if (supportedVersions.contains(WS_PROTOCOL_VERSION_1)) {
                     protocolUrl = baseUrl + "v" + WS_PROTOCOL_VERSION_1 + "/";
-                }
-                else {
+                } else {
                     if (supportedVersions.contains(WS_PROTOCOL_VERSION_0)) {
                         protocolUrl = baseUrl + "v" + WS_PROTOCOL_VERSION_0 + "/";
                     }
                 }
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 throw new OozieClientException(OozieClientException.IO_ERROR, ex);
             }
             validatedVersion = true;
@@ -402,8 +380,7 @@ public class OozieClient {
 
         if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
             versions = (JSONArray) JSONValue.parse(new InputStreamReader(conn.getInputStream()));
-        }
-        else {
+        } else {
             handleError(conn);
         }
         return versions;
@@ -477,8 +454,7 @@ public class OozieClient {
         StringBuilder sb = new StringBuilder();
         if (protocolVersion == null) {
             sb.append(protocolUrl);
-        }
-        else {
+        } else {
             sb.append(getBaseURLForVersion(protocolVersion));
         }
         sb.append(collection);
@@ -508,6 +484,7 @@ public class OozieClient {
         }
         return true;
     }
+
     /**
      * Create retryable http connection to oozie server.
      *
@@ -516,7 +493,7 @@ public class OozieClient {
      * @return connection
      * @throws IOException
      */
-    protected HttpURLConnection createRetryableConnection(final URL url, final String method) throws IOException{
+    protected HttpURLConnection createRetryableConnection(final URL url, final String method) throws IOException {
         return (HttpURLConnection) new ConnectionRetriableClient(getRetryCount()) {
             @Override
             public Object doExecute(URL url, String method) throws IOException, OozieClientException {
@@ -547,6 +524,10 @@ public class OozieClient {
         return conn;
     }
 
+    /**
+     * Callable有返回值并且可以抛出异常
+     * @param <T>
+     */
     protected abstract class ClientCallable<T> implements Callable<T> {
         private final String method;
         private final String collection;
@@ -574,14 +555,12 @@ public class OozieClient {
                         System.out.println(method + " " + url);
                     }
                     return call(createRetryableConnection(url, method));
-                }
-                else {
+                } else {
                     System.out.println("Option not supported in target server. Supported only on Oozie-2.0 or greater."
                             + " Use 'oozie help' for details");
                     throw new OozieClientException(OozieClientException.UNSUPPORTED_VERSION, new Exception());
                 }
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 throw new OozieClientException(OozieClientException.IO_ERROR, ex);
             }
         }
@@ -602,11 +581,10 @@ public class OozieClient {
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 Map<String, String> map = new HashMap<String, String>();
                 for (Object key : json.keySet()) {
-                    map.put((String)key, (String)json.get(key));
+                    map.put((String) key, (String) json.get(key));
                 }
                 return map;
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -673,8 +651,7 @@ public class OozieClient {
                 transformer.transform(source, result);
                 System.out.println();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException(e);
         }
     }
@@ -706,6 +683,9 @@ public class OozieClient {
             writeToXml(conf, conn.getOutputStream());
             if (conn.getResponseCode() == HttpURLConnection.HTTP_CREATED) {
                 JSONObject json = (JSONObject) JSONValue.parse(new InputStreamReader(conn.getInputStream()));
+                /**
+                 *   提交任务成功返回ID
+                 */
                 return (String) json.get(JsonTags.JOB_ID);
             }
             if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -763,13 +743,13 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return json;
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
         }
     }
+
     /**
      * Update coord definition.
      *
@@ -825,8 +805,7 @@ public class OozieClient {
                 JSONObject update = (JSONObject) json.get(JsonTags.COORD_UPDATE);
                 if (update != null) {
                     return (String) update.get(JsonTags.COORD_UPDATE_DIFF);
-                }
-                else {
+                } else {
                     return "";
                 }
             }
@@ -939,6 +918,7 @@ public class OozieClient {
             throws OozieClientException {
         return bulkModifyJobs("resume", filter, jobType, start, len);
     }
+
     /**
      * Change a coordinator job.
      *
@@ -975,8 +955,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return JsonToBean.createWorkflowJob(json);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -994,8 +973,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return JsonToBean.createJMSConnectionInfo(json);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1014,8 +992,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return JsonToBean.createWorkflowAction(json);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1099,7 +1076,7 @@ public class OozieClient {
      * @throws OozieClientException thrown if the job info could not be retrieved.
      */
     public void getJobLog(String jobId, String logRetrievalType, String logRetrievalScope, String logFilter,
-            PrintStream ps) throws OozieClientException {
+                          PrintStream ps) throws OozieClientException {
         new JobLog(jobId, logRetrievalType, logRetrievalScope, logFilter, ps).call();
     }
 
@@ -1132,6 +1109,7 @@ public class OozieClient {
         JobLog(String jobId) {
             super(jobId, RestConstants.JOB_SHOW_LOG);
         }
+
         JobLog(String jobId, String logRetrievalType, String logRetrievalScope, String logFilter, PrintStream ps) {
             super(jobId, logRetrievalType, logRetrievalScope, RestConstants.JOB_SHOW_LOG, logFilter, ps);
         }
@@ -1172,8 +1150,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return (String) json.get(JsonTags.JMS_TOPIC_NAME);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1213,7 +1190,7 @@ public class OozieClient {
         }
 
         JobMetadata(String jobId, String logRetrievalType, String logRetrievalScope, String metaType, String logFilter,
-                PrintStream ps) {
+                    PrintStream ps) {
             super("GET", RestConstants.JOB, notEmpty(jobId, "jobId"), prepareParams(RestConstants.JOB_SHOW_PARAM,
                     metaType, RestConstants.JOB_LOG_TYPE_PARAM, logRetrievalType, RestConstants.JOB_LOG_SCOPE_PARAM,
                     logRetrievalScope, RestConstants.LOG_FILTER_OPTION, logFilter));
@@ -1229,16 +1206,13 @@ public class OozieClient {
                 try {
                     if (printStream != null) {
                         sendToOutputStream(isr, -1);
-                    }
-                    else {
+                    } else {
                         returnVal = getReaderAsString(isr, -1);
                     }
-                }
-                finally {
+                } finally {
                     isr.close();
                 }
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return returnVal;
@@ -1316,8 +1290,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return JsonToBean.createCoordinatorJob(json);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1341,8 +1314,7 @@ public class OozieClient {
                     workflows = new JSONArray();
                 }
                 return JsonToBean.createWorkflowJobList(workflows);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1363,8 +1335,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return JsonToBean.createBundleJob(json);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1383,8 +1354,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return JsonToBean.createCoordinatorAction(json);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1478,8 +1448,7 @@ public class OozieClient {
                     workflows = new JSONArray();
                 }
                 return JsonToBean.createWorkflowJobList(workflows);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1505,8 +1474,7 @@ public class OozieClient {
                     jobs = new JSONArray();
                 }
                 return JsonToBean.createCoordinatorJobList(jobs);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1532,8 +1500,7 @@ public class OozieClient {
                     jobs = new JSONArray();
                 }
                 return JsonToBean.createBundleJobList(jobs);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1558,8 +1525,7 @@ public class OozieClient {
                     results = new JSONArray();
                 }
                 return JsonToBean.createBulkResponseList(results);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1582,8 +1548,7 @@ public class OozieClient {
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 JSONArray coordActions = (JSONArray) json.get(JsonTags.COORDINATOR_ACTIONS);
                 return JsonToBean.createCoordinatorActionList(coordActions);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1603,17 +1568,17 @@ public class OozieClient {
             if ((conn.getResponseCode() == HttpURLConnection.HTTP_OK)) {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
-                if(json != null) {
+                if (json != null) {
                     JSONArray coordActions = (JSONArray) json.get(JsonTags.COORDINATOR_ACTIONS);
                     return JsonToBean.createCoordinatorActionList(coordActions);
                 }
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
         }
     }
+
     private class CoordRerun extends ClientCallable<List<CoordinatorAction>> {
         private final Properties conf;
 
@@ -1635,8 +1600,7 @@ public class OozieClient {
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 JSONArray coordActions = (JSONArray) json.get(JsonTags.COORDINATOR_ACTIONS);
                 return JsonToBean.createCoordinatorActionList(coordActions);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1658,8 +1622,7 @@ public class OozieClient {
             conn.setRequestProperty("content-type", RestConstants.XML_CONTENT_TYPE);
             if ((conn.getResponseCode() == HttpURLConnection.HTTP_OK)) {
                 return null;
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1677,7 +1640,7 @@ public class OozieClient {
      * @throws OozieClientException
      */
     public List<CoordinatorAction> reRunCoord(String jobId, String rerunType, String scope, boolean refresh,
-            boolean noCleanup) throws OozieClientException {
+                                              boolean noCleanup) throws OozieClientException {
         return new CoordRerun(jobId, rerunType, scope, refresh, noCleanup, false, null).call();
     }
 
@@ -1870,8 +1833,7 @@ public class OozieClient {
             conn.setRequestProperty("content-type", RestConstants.XML_CONTENT_TYPE);
             if ((conn.getResponseCode() == HttpURLConnection.HTTP_OK)) {
                 System.out.println("Done");
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1879,40 +1841,39 @@ public class OozieClient {
     }
 
     /**
-    * Print sla info about coordinator and workflow jobs and actions.
-    *
-    * @param start starting offset
-    * @param len number of results
-    * @throws OozieClientException
-    */
-        public void getSlaInfo(int start, int len, String filter) throws OozieClientException {
-            new SlaInfo(start, len, filter).call();
+     * Print sla info about coordinator and workflow jobs and actions.
+     *
+     * @param start starting offset
+     * @param len number of results
+     * @throws OozieClientException
+     */
+    public void getSlaInfo(int start, int len, String filter) throws OozieClientException {
+        new SlaInfo(start, len, filter).call();
+    }
+
+    private class SlaInfo extends ClientCallable<Void> {
+
+        SlaInfo(int start, int len, String filter) {
+            super("GET", WS_PROTOCOL_VERSION_1, RestConstants.SLA, "", prepareParams(RestConstants.SLA_GT_SEQUENCE_ID,
+                    Integer.toString(start), RestConstants.MAX_EVENTS, Integer.toString(len),
+                    RestConstants.JOBS_FILTER_PARAM, filter));
         }
 
-        private class SlaInfo extends ClientCallable<Void> {
-
-            SlaInfo(int start, int len, String filter) {
-                super("GET", WS_PROTOCOL_VERSION_1, RestConstants.SLA, "", prepareParams(RestConstants.SLA_GT_SEQUENCE_ID,
-                        Integer.toString(start), RestConstants.MAX_EVENTS, Integer.toString(len),
-                        RestConstants.JOBS_FILTER_PARAM, filter));
-            }
-
-            @Override
-            protected Void call(HttpURLConnection conn) throws IOException, OozieClientException {
-                conn.setRequestProperty("content-type", RestConstants.XML_CONTENT_TYPE);
-                if ((conn.getResponseCode() == HttpURLConnection.HTTP_OK)) {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    String line = null;
-                    while ((line = br.readLine()) != null) {
-                        System.out.println(line);
-                    }
+        @Override
+        protected Void call(HttpURLConnection conn) throws IOException, OozieClientException {
+            conn.setRequestProperty("content-type", RestConstants.XML_CONTENT_TYPE);
+            if ((conn.getResponseCode() == HttpURLConnection.HTTP_OK)) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
                 }
-                else {
-                    handleError(conn);
-                }
-                return null;
+            } else {
+                handleError(conn);
             }
+            return null;
         }
+    }
 
     private class JobIdAction extends ClientCallable<String> {
 
@@ -1927,8 +1888,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return (String) json.get(JsonTags.JOB_ID);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -1987,8 +1947,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return SYSTEM_MODE.valueOf((String) json.get(JsonTags.OOZIE_SYSTEM_MODE));
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return SYSTEM_MODE.NORMAL;
@@ -2029,8 +1988,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return (String) json.get(JsonTags.BUILD_VERSION);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -2062,11 +2020,9 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return (String) json.get(JsonTags.VALIDATE);
-            }
-            else if ((conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND)) {
+            } else if ((conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND)) {
                 return null;
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -2074,7 +2030,7 @@ public class OozieClient {
     }
 
 
-    private  class UpdateSharelib extends ClientCallable<String> {
+    private class UpdateSharelib extends ClientCallable<String> {
 
         UpdateSharelib() {
             super("GET", RestConstants.ADMIN, RestConstants.ADMIN_UPDATE_SHARELIB, prepareParams(
@@ -2097,8 +2053,7 @@ public class OozieClient {
                         }
                         bf.append(System.getProperty("line.separator"));
                     }
-                }
-                else{
+                } else {
                     JSONObject obj = (JSONObject) ((JSONObject) sharelib).get(JsonTags.SHARELIB_LIB_UPDATE);
                     for (Object key : obj.keySet()) {
                         bf.append("\t").append(key).append(" = ").append(obj.get(key))
@@ -2107,8 +2062,7 @@ public class OozieClient {
                     bf.append(System.getProperty("line.separator"));
                 }
                 return bf.toString();
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -2144,8 +2098,7 @@ public class OozieClient {
                     }
                     return bf.toString();
                 }
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -2265,7 +2218,7 @@ public class OozieClient {
         if (verbose) {
             System.out.println(status);
         }
-        while(!completedStatuses.contains(status) && (noTimeout || System.currentTimeMillis() <= endTime)) {
+        while (!completedStatuses.contains(status) && (noTimeout || System.currentTimeMillis() <= endTime)) {
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException ie) {
@@ -2302,8 +2255,7 @@ public class OozieClient {
                 Reader reader = new InputStreamReader(conn.getInputStream());
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 return (String) json.get(JsonTags.STATUS);
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -2350,8 +2302,7 @@ public class OozieClient {
                     list.add("Uniqueness dump is null!");
                 }
                 return list;
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -2449,12 +2400,10 @@ public class OozieClient {
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 Metrics metrics = new Metrics(json);
                 return metrics;
-            }
-            else if ((conn.getResponseCode() == HttpURLConnection.HTTP_UNAVAILABLE)) {
+            } else if ((conn.getResponseCode() == HttpURLConnection.HTTP_UNAVAILABLE)) {
                 // Use Instrumentation endpoint
                 return null;
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;
@@ -2473,7 +2422,7 @@ public class OozieClient {
             counters = new HashMap<String, Long>(jCounters.size());
             for (Object entO : jCounters.entrySet()) {
                 Entry<String, JSONObject> ent = (Entry<String, JSONObject>) entO;
-                counters.put(ent.getKey(), (Long)ent.getValue().get("count"));
+                counters.put(ent.getKey(), (Long) ent.getValue().get("count"));
             }
 
             JSONObject jGuages = (JSONObject) json.get("gauges");
@@ -2682,12 +2631,10 @@ public class OozieClient {
                 JSONObject json = (JSONObject) JSONValue.parse(reader);
                 Instrumentation instrumentation = new Instrumentation(json);
                 return instrumentation;
-            }
-            else if ((conn.getResponseCode() == HttpURLConnection.HTTP_UNAVAILABLE)) {
+            } else if ((conn.getResponseCode() == HttpURLConnection.HTTP_UNAVAILABLE)) {
                 // Use Metrics endpoint
                 return null;
-            }
-            else {
+            } else {
                 handleError(conn);
             }
             return null;

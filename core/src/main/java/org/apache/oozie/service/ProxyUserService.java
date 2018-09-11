@@ -129,6 +129,11 @@ public class ProxyUserService implements Service {
      */
     public void validate(String proxyUser, String proxyHost, String doAsUser) throws IOException,
         AccessControlException {
+        LOG.debug("duanxiong5");
+        LOG.debug("proxyUser的值为："+proxyUser);
+        LOG.debug("proxyHost的值为："+proxyHost);
+        LOG.debug("doAsUser的值为："+doAsUser);
+        LOG.debug("duanxiong5");
         ParamChecker.notEmpty(proxyUser, "proxyUser",
                 "If you're attempting to use user-impersonation via a proxy user, please make sure that "
                 + "oozie.service.ProxyUserService.proxyuser.#USER#.hosts and "

@@ -1052,6 +1052,7 @@ public class OozieCLI {
             else if (options.contains(CHANGE_OPTION)) {
                 wc.change(commandLine.getOptionValue(CHANGE_OPTION), getChangeValue(commandLine));
             }
+            //-run参数的运行路径
             else if (options.contains(RUN_OPTION)) {
                 System.out.println(JOB_ID_PREFIX + wc.run(getConfiguration(wc, commandLine)));
             }
