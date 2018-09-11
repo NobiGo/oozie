@@ -18,8 +18,7 @@
 
 package org.apache.oozie.service;
 
-import org.apache.oozie.service.Service;
-import org.apache.oozie.service.Services;
+
 import org.apache.oozie.util.ParamChecker;
 import org.apache.hadoop.conf.Configuration;
 
@@ -39,6 +38,7 @@ public class CallbackService implements Service {
     public static final String CONF_EARLY_REQUEUE_MAX_RETRIES = CONF_PREFIX + "early.requeue.max.retries";
 
     private Configuration oozieConf;
+
     private int earlyRequeueMaxRetries;
 
     /**
